@@ -15,7 +15,8 @@
     "cli": "node bin/cli.js",
     "set-settings": "node getSettings.js",
     "dev:debug:server": "nodemon --ignore cache.json --inspect=0.0.0.0:9229 bin/server.js",
-    "dev:debug:cli": "nodemon --ignore cache.json --inspect=0.0.0.0:9228 bin/cli.js"
+    "dev:debug:cli": "nodemon --ignore cache.json --inspect=0.0.0.0:9228 bin/cli.js",
+    "vercel-build": "npm run server && npm run dev"
   },
   "author": "waylaidwanderer",
   "license": "MIT",
