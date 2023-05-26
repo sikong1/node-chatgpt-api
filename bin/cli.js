@@ -96,9 +96,9 @@ console.log(tryBoxen('ChatGPT CLI', {
 
 await conversation();
 
-async function conversation() {
+async function conversation() { // 创建对话
     console.log('Type "!" to access the command menu.');
-    const prompt = inquirer.prompt([
+    const prompt = inquirer.prompt([ // 询问
         {
             type: 'autocomplete',
             name: 'message',
@@ -110,23 +110,23 @@ async function conversation() {
         },
     ]);
     // hiding the ugly autocomplete hint
-    prompt.ui.activePrompt.firstRender = false;
+    prompt.ui.activePrompt.firstRender = false; // 隐藏自动补全提示
     // The below is a hack to allow selecting items from the autocomplete menu while also being able to submit messages.
     // This basically simulates a hybrid between having `suggestOnly: false` and `suggestOnly: true`.
-    await new Promise(resolve => setTimeout(resolve, 0));
-    prompt.ui.activePrompt.opt.source = (answers, input) => {
+    await new Promise(resolve => setTimeout(resolve, 0)); // 延迟0秒
+    prompt.ui.activePrompt.opt.source = (answers, input) => { // 重新定义source
         if (!input) {
             return [];
         }
         prompt.ui.activePrompt.opt.suggestOnly = !input.startsWith('!');
         return availableCommands.filter(command => command.value.startsWith(input));
     };
-    let { message } = await prompt;
-    message = message.trim();
-    if (!message) {
-        return conversation();
+    let { message } = await prompt; // 获取输入
+    message = message.trim(); // 去除空格
+    if (!message) { // 如果输入为空
+        return conversation(); // 重新输入
     }
-    if (message.startsWith('!')) {
+    if (message.startsWith('!')) { // 如果输入以!开头
         switch (message) {
             case '!editor':
                 return useEditor();
@@ -144,12 +144,12 @@ async function conversation() {
                 return conversation();
         }
     }
-    return onMessage(message);
+    return onMessage(message); // 发送消息
 }
 
-async function onMessage(message) {
-    let aiLabel;
-    switch (clientToUse) {
+async function onMessage(message) { // 发送消息
+    let aiLabel; // AI标签
+    switch (clientToUse) { // 判断使用的AI
         case 'bing':
             aiLabel = 'Bing';
             break;
@@ -157,37 +157,37 @@ async function onMessage(message) {
             aiLabel = settings.chatGptClient?.chatGptLabel || 'ChatGPT';
             break;
     }
-    let reply = '';
-    const spinnerPrefix = `${aiLabel} is typing...`;
-    const spinner = ora(spinnerPrefix);
-    spinner.prefixText = '\n   ';
-    spinner.start();
+    let reply = ''; // 回复
+    const spinnerPrefix = `${aiLabel} is typing...`; // AI正在输入
+    const spinner = ora(spinnerPrefix); // 创建ora实例
+    spinner.prefixText = '\n   '; // 前缀
+    spinner.start(); // 开始
     try {
-        if (clientToUse === 'bing' && !conversationData.jailbreakConversationId) {
+        if (clientToUse === 'bing' && !conversationData.jailbreakConversationId) { // 如果使用的是bing
             // activate jailbreak mode for Bing
             conversationData.jailbreakConversationId = true;
         }
-        const response = await client.sendMessage(message, {
-            ...conversationData,
-            onProgress: (token) => {
-                reply += token;
-                const output = tryBoxen(`${reply.trim()}█`, {
-                    title: aiLabel, padding: 0.7, margin: 1, dimBorder: true,
+        const response = await client.sendMessage(message, { // 发送消息
+            ...conversationData, // 会话数据,包括conversationId,conversationSignature,parentMessageId,jailbreakConversationId
+            onProgress: (token) => { // 进度
+                reply += token; // 回复
+                const output = tryBoxen(`${reply.trim()}█`, { // 输出
+                    title: aiLabel, padding: 0.7, margin: 1, dimBorder: true, // 标题,内边距,外边距,边框
                 });
-                spinner.text = `${spinnerPrefix}\n${output}`;
+                spinner.text = `${spinnerPrefix}\n${output}`; // 设置ora实例的文本
             },
         });
-        let responseText;
-        switch (clientToUse) {
+        let responseText; // 回复文本
+        switch (clientToUse) { // 判断使用的AI
             case 'bing':
                 responseText = response.details.adaptiveCards?.[0]?.body?.[0]?.text?.trim() || response.response;
                 break;
             default:
-                responseText = response.response;
+                responseText = response.response; // 回复文本
                 break;
         }
-        clipboard.write(responseText).then(() => {}).catch(() => {});
-        spinner.stop();
+        clipboard.write(responseText).then(() => {}).catch(() => {}); // 复制到剪贴板
+        spinner.stop(); // 停止ora实例
         switch (clientToUse) {
             case 'bing':
                 conversationData = {
@@ -199,18 +199,18 @@ async function onMessage(message) {
                     // invocationId: response.invocationId,
                 };
                 break;
-            default:
-                conversationData = {
+            default: // chatgpt
+                conversationData = { // 会话数据
                     conversationId: response.conversationId,
                     parentMessageId: response.messageId,
                 };
                 break;
         }
-        await client.conversationsCache.set('lastConversation', conversationData);
-        const output = tryBoxen(responseText, {
-            title: aiLabel, padding: 0.7, margin: 1, dimBorder: true,
+        await client.conversationsCache.set('lastConversation', conversationData); // 保存会话数据
+        const output = tryBoxen(responseText, { // 输出
+            title: aiLabel, padding: 0.7, margin: 1, dimBorder: true, // 标题,内边距,外边距,边框
         });
-        console.log(output);
+        console.log(output); // 输出
     } catch (error) {
         spinner.stop();
         logError(error?.json?.error?.message || error.body || error || 'Unknown error');

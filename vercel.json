@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "bin/server.js",
+      "use": "node server.js"
+    },
+    {
+      "src": "./package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "cd frontend && npm dev && npm run build",
+        "outputDirectory": "./dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/bin/(.*)",
+      "dest": "bin/\$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "./dist/\$1"
+    }
+  ]
+}
