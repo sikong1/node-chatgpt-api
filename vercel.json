@@ -3,7 +3,7 @@
   "builds": [
     {
       "src": "bin/server.js",
-      "use": "node server.js"
+      "use": "@vercel/node"
     },
     {
       "src": "./package.json",
@@ -17,11 +17,11 @@
   "routes": [
     {
       "src": "/bin/(.*)",
-      "dest": "bin/\$1"
+      "dest": "bin/\\$1"
     },
     {
       "src": "/(.*)",
-      "dest": "./dist/\$1"
+      "dest": "./dist/\\$1"
     }
   ]
 }
